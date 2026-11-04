@@ -1,0 +1,10 @@
+# Run PayAgent with: docker compose up --build
+# Reads your secrets from the .env file in this folder (never committed).
+services:
+  payagent:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -1,0 +1,20 @@
+{
+  "name": "payagent",
+  "version": "1.0.0",
+  "description": "PayAgent — an AI invoicing & payments agent built on PayPal (sandbox) + Google Gemini. PayPal AI Hackathon entry.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@google/genai": "^2.31.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  },
+  "license": "MIT"
+}
