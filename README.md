@@ -1,5 +1,17 @@
 # PayAgent — AI Invoicing & Payments Agent
 
+## 🔗 Live Demo
+
+**👉 [https://payagent-m37p.onrender.com](https://payagent-m37p.onrender.com)**
+
+Open the link and start chatting — no setup needed. It runs on the PayPal
+**sandbox** (no real money moves).
+
+> ⏳ Hosted on Render's free tier, so if it's been idle the **first load may take
+> up to ~1 minute to wake up** — just wait and it'll open.
+
+---
+
 **PayPal AI Hackathon entry.** PayAgent is a conversational AI agent that lets
 freelancers and small businesses **create, send, track, and chase invoices in
 plain English**. You talk to it; it does the PayPal work for you.
