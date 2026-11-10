@@ -32,10 +32,23 @@
         <div class="msg agent">
           <div class="avatar agent-avatar">PA</div>
           <div class="bubble">
-            👋 Hi! I'm <strong>PayAgent</strong>. Tell me who to bill and what for — e.g.
-            <em>"Invoice sam@acme.com $400 for October design work, due in 15 days."</em>
-            I'll prepare a draft for you to review and send.
+            👋 Hi! I'm <strong>PayAgent</strong>. Tell me who to bill and what for, and
+            I'll prepare a PayPal invoice for you to review and send. Try one of these to start:
           </div>
+        </div>
+        <div class="starters" id="starters">
+          <button class="starter" data-send="Invoice buyer@personal.example.com $250 for logo design, due in 7 days">
+            <span class="starter-title">Create an invoice</span>
+            <span class="starter-sub">"Invoice a client $250 for logo design, due in 7 days"</span>
+          </button>
+          <button class="starter" data-send="What invoices are unpaid?">
+            <span class="starter-title">Check what's unpaid</span>
+            <span class="starter-sub">See every outstanding invoice at a glance</span>
+          </button>
+          <button class="starter" data-send="Which invoices are overdue?">
+            <span class="starter-title">Find overdue invoices</span>
+            <span class="starter-sub">Spot the ones you should chase</span>
+          </button>
         </div>
       </div>
 

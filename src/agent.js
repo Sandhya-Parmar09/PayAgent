@@ -1,6 +1,5 @@
-// The AI agent: it runs a manual function-calling loop with Google Gemini.
-// Gemini decides which PayPal action to take; the backend executes safe actions
-// immediately and defers "gated" (money/send) actions to user confirmation.
+// Gemini function-calling loop. Read actions run right away; actions that
+// move money or notify someone are held for the user to confirm.
 
 import { GoogleGenAI } from "@google/genai";
 import { functionDeclarations, GATED, executeTool, describeAction } from "./tools.js";
@@ -71,7 +70,7 @@ export async function runTurn(sessionId, userMessage, { defaultCurrency } = {}) 
     for (const call of calls) {
       const input = call.args || {};
       if (GATED.has(call.name)) {
-        // Do NOT execute. Record it for the UI and tell Gemini it's pending.
+        // Hold for confirmation instead of running it.
         pendingActions.push({
           tool: call.name,
           input,
@@ -88,7 +87,6 @@ export async function runTurn(sessionId, userMessage, { defaultCurrency } = {}) 
         });
       } else {
         try {
-          // If the model didn't specify a currency, use the user's chosen default.
           if (call.name === "create_invoice" && !input.currency) input.currency = currency;
           const result = await executeTool(call.name, input);
           if (call.name === "create_invoice") invoicesChanged = true;

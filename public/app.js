@@ -124,6 +124,7 @@ function renderPending(actions) {
 }
 
 async function sendMessage(text) {
+  hideStarters();
   addMessage("user", text);
   const typing = showTyping();
   sendBtn.disabled = true;
@@ -153,6 +154,19 @@ form.addEventListener("submit", (e) => {
   input.value = "";
   sendMessage(text);
 });
+
+// Starter example cards shown on first load — send the example, then hide them.
+const startersEl = document.getElementById("starters");
+if (startersEl) {
+  startersEl.addEventListener("click", (e) => {
+    const card = e.target.closest(".starter");
+    if (!card) return;
+    sendMessage(card.dataset.send);
+  });
+}
+function hideStarters() {
+  if (startersEl) startersEl.style.display = "none";
+}
 
 // Quick-action chips: either fill the input or send immediately.
 document.getElementById("chips").addEventListener("click", (e) => {
@@ -214,6 +228,7 @@ async function loadInvoices() {
           <span class="inv-meta inv-id">#${inv.invoiceNumber || (inv.id || "").slice(0, 12)}${inv.dueDate ? " · due " + inv.dueDate : ""}</span>
           <span class="foot-right">
             ${inv.status === "DRAFT" ? `<button class="card-send" data-id="${inv.id}" data-who="${(inv.recipientName || inv.recipientEmail || "").replace(/"/g, "")}">Send ▸</button>` : ""}
+            ${["SENT", "UNPAID"].includes(inv.status) ? `<button class="card-paid" data-id="${inv.id}">Mark paid</button>` : ""}
             <span class="status ${statusClass}">${statusLabel}</span>
           </span>
         </div>`;
@@ -226,30 +241,40 @@ async function loadInvoices() {
 
 document.getElementById("refresh").onclick = loadInvoices;
 
-// Send a draft invoice directly from its dashboard card.
+// Dashboard card actions: send a draft, or mark a sent invoice as paid.
 invoicesEl.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".card-send");
+  const sendBtn = e.target.closest(".card-send");
+  const paidBtn = e.target.closest(".card-paid");
+  const btn = sendBtn || paidBtn;
   if (!btn) return;
+
   const id = btn.dataset.id;
+  const tool = sendBtn ? "send_invoice" : "mark_paid";
   const who = btn.dataset.who;
-  if (!window.confirm(`Send this invoice${who ? " to " + who : ""}? The recipient will be notified.`)) return;
+  const label = btn.textContent;
+
+  const prompt = sendBtn
+    ? `Send this invoice${who ? " to " + who : ""}? The recipient will be notified.`
+    : "Mark this invoice as paid? This records a payment against it.";
+  if (!window.confirm(prompt)) return;
 
   btn.disabled = true;
-  btn.textContent = "Sending…";
+  btn.textContent = "Working…";
   try {
     const res = await fetch("/api/confirm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, action: { tool: "send_invoice", input: { invoiceId: id } } }),
+      body: JSON.stringify({ sessionId, action: { tool, input: { invoiceId: id } } }),
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    addMessage("agent", `✅ Invoice sent${who ? " to " + who : ""}. Status: ${data.result.status}.`);
+    const msg = sendBtn ? `✅ Invoice sent${who ? " to " + who : ""}.` : "✅ Marked as paid.";
+    addMessage("agent", `${msg} Status: ${data.result.status}.`);
     loadInvoices();
   } catch (err) {
     addMessage("agent", `⚠ ${err.message}`);
     btn.disabled = false;
-    btn.textContent = "Send ▸";
+    btn.textContent = label;
   }
 });
 

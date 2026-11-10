@@ -1,7 +1,6 @@
-// Small retry helper so a transient network blip (the dreaded "fetch failed")
-// doesn't surface to the user as an error. Retries only on transient failures
-// — network/transport errors, 429 (rate limit), and 5xx — never on real
-// client errors like a 400 or 404.
+// Retry helper so a brief network blip ("fetch failed") doesn't surface as an
+// error. Retries only on transient failures (network errors, 429, and 5xx),
+// never on real client errors like a 400 or 404.
 
 function isTransient(err) {
   const msg = (err?.message || "").toLowerCase();

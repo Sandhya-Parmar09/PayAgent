@@ -1,15 +1,12 @@
-// Tool definitions handed to Gemini (as functionDeclarations), plus the mapping
-// from a tool name to the PayPal function that actually runs it.
-//
-// "gated" tools move money / send things to a real person. We never execute
-// them inside the agent loop — the backend intercepts the call and asks the
-// user to confirm first. "safe" tools (drafting, reading) run immediately.
+// The tools Gemini can call, and how each maps to a PayPal function.
+// Tools in GATED need the user to confirm before they run.
 
 import { Type } from "@google/genai";
 import {
   createDraftInvoice,
   sendInvoice,
   sendReminder,
+  recordPayment,
   listInvoices,
   getInvoice,
   summarize,
@@ -97,10 +94,20 @@ export const functionDeclarations = [
       required: ["invoiceId"],
     },
   },
+  {
+    name: "mark_paid",
+    description:
+      "Record a payment against a sent invoice and mark it as paid (e.g. the client paid by bank transfer). Requires the user's explicit confirmation.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: { invoiceId: { type: Type.STRING } },
+      required: ["invoiceId"],
+    },
+  },
 ];
 
 // Actions that require human confirmation before they run.
-export const GATED = new Set(["send_invoice", "send_reminder"]);
+export const GATED = new Set(["send_invoice", "send_reminder", "mark_paid"]);
 
 // Execute a tool call for real against PayPal.
 export async function executeTool(name, input) {
@@ -116,6 +123,8 @@ export async function executeTool(name, input) {
       return await listInvoices(input);
     case "get_invoice":
       return summarize(await getInvoice(input.invoiceId));
+    case "mark_paid":
+      return await recordPayment(input);
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -128,5 +137,7 @@ export function describeAction(name, input) {
     return `Send invoice ${input.invoiceId} to its recipient`;
   if (name === "send_reminder")
     return `Send a payment reminder for invoice ${input.invoiceId}`;
+  if (name === "mark_paid")
+    return `Mark invoice ${input.invoiceId} as paid`;
   return `${name} ${JSON.stringify(input)}`;
 }

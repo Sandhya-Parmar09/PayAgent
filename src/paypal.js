@@ -1,6 +1,4 @@
-// Thin wrapper around the PayPal REST Invoicing API (sandbox by default).
-// This is deliberately dependency-free: it uses the global fetch in Node 18+.
-// The functions here are what the AI agent's "tools" ultimately call.
+// PayPal REST Invoicing calls (sandbox by default), using the built-in fetch.
 
 import { withRetry } from "./retry.js";
 
@@ -155,6 +153,30 @@ export async function sendReminder({ invoiceId, subject, note }) {
   });
   const invoice = await getInvoice(invoiceId);
   return summarize(invoice);
+}
+
+// Record a payment against a sent invoice, marking it paid. Useful when a
+// client pays by bank transfer/cash outside PayPal, and for demoing the full
+// DRAFT -> SENT -> PAID lifecycle.
+export async function recordPayment({ invoiceId }) {
+  const invoice = await getInvoice(invoiceId);
+  const value =
+    invoice?.amount?.value ||
+    invoice?.due_amount?.value ||
+    invoice?.detail?.total_amount?.value;
+  const currency =
+    invoice?.amount?.currency_code || invoice?.detail?.currency_code || "USD";
+
+  await ppFetch(`/v2/invoicing/invoices/${invoiceId}/payments`, {
+    method: "POST",
+    body: {
+      method: "BANK_TRANSFER",
+      payment_date: new Date().toISOString().slice(0, 10),
+      note: "Payment received",
+      amount: { currency_code: currency, value: Number(value).toFixed(2) },
+    },
+  });
+  return summarize(await getInvoice(invoiceId));
 }
 
 export async function listInvoices({ pageSize = 20 } = {}) {
